@@ -186,6 +186,13 @@ func (self *Device)usbhidSetReport(data []byte) (error) {
 	reportID := int(data[0])
 	length := C.int(len(data))
 
+	claimrc := C.usb_claim_interface(self.handle, 0);
+	if int(claimrc) != 0 {
+		return fmt.Errorf("%s", C.GoString(C.usb_strerror()))
+	}
+
+	defer C.usb_release_interface(self.handle, 0);
+
 	rc := C.usb_control_msg(self.handle,
 		C.int(C.USB_TYPE_CLASS|C.USB_RECIP_INTERFACE|C.USB_ENDPOINT_OUT),
 		C.int(USBRQ_HID_SET_REPORT),
@@ -203,6 +210,13 @@ func (self *Device)usbhidSetReport(data []byte) (error) {
 func (self *Device)usbhidGetReport(reportNumber int, len int) ([]byte, error) {
 	data := C.malloc(C.sizeof_char * C.ulong(len))
 	defer C.free(data)
+
+	claimrc := C.usb_claim_interface(self.handle, 0);
+	if int(claimrc) != 0 {
+		return nil, fmt.Errorf("%s", C.GoString(C.usb_strerror()))
+	}
+
+	defer C.usb_release_interface(self.handle, 0);
 
 	bytesReceived := C.usb_control_msg(self.handle,
 		C.int(C.USB_TYPE_CLASS | C.USB_RECIP_INTERFACE | C.USB_ENDPOINT_IN),

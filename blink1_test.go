@@ -10,23 +10,20 @@ func TestBlink1(t *testing.T) {
 	defer device.Close()
 
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	red := Pattern{
 		Red: 20,
 		LED: LED1,
-		FadeTime: time.Duration(10)*time.Millisecond,
+		FadeTime: time.Duration(500)*time.Millisecond,
 	}
-
-	//device.FadeToRGB(&red)
 
 	blue := Pattern{
 		Blue: 20,
 		LED: LED2,
-		FadeTime: time.Duration(10)*time.Millisecond,
+		FadeTime: time.Duration(500)*time.Millisecond,
 	}
-	//device.FadeToRGB(&blue)
 
 	playing, playstart, playend, playcount, playpos, err := device.ReadPlayState()
 	if err != nil {
@@ -40,15 +37,18 @@ func TestBlink1(t *testing.T) {
 		t.Log(pats)
 	}
 
-	device.WritePattern(&blue, 3);
-	device.WritePattern(&red, 4);
+	device.WritePattern(&blue, 3)
+	device.WritePattern(&red, 4)
+	device.WritePattern(&Pattern{
+		FadeTime: time.Duration(1000)*time.Millisecond,
+	}, 5)
 
 	pats, err = device.ReadPatternAll()
 	if err == nil {
 		t.Log(pats)
 	}
 
-	err = device.Play(1, 3, 4, 0)
+	err = device.Play(1, 3, 5, 0)
 	if err != nil {
 		t.Log(err)
 	}

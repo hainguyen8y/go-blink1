@@ -151,9 +151,18 @@ func (self *Device) Play(play, startpos, endpos, count uint8) error {
 }
 
 func (self *Device) FadeToRGB(pat *Pattern) error {
-	dms := pat.FadeTime / 10
+	dms := int(pat.FadeTime/(10*time.Millisecond));
 	cmd := []byte{
-		1, 'c', byte(pat.Red), byte(pat.Green), byte(pat.Blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
+		BLINK1_REPORT_ID, 'c', byte(pat.Red), byte(pat.Green), byte(pat.Blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
+	}
+	err := self.Device.Blink1Write(cmd)
+	return err
+}
+
+func (self *Device) SetRGB(pat *Pattern) error {
+	dms := int(pat.FadeTime/(10*time.Millisecond));
+	cmd := []byte{
+		BLINK1_REPORT_ID, 'n', byte(pat.Red), byte(pat.Green), byte(pat.Blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
 	}
 	err := self.Device.Blink1Write(cmd)
 	return err
