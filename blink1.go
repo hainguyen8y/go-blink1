@@ -3,7 +3,7 @@ package blink1
 import (
 	"errors"
 	"time"
-	"blink1/libusb"
+	"github.com/hainguyen8y/go-blink1/libusb"
 )
 
 const BLINK1_REPORT_ID = 1
@@ -30,6 +30,7 @@ type Pattern struct {
 	Red      uint8         // Red value 0-255
 	Green    uint8         // Green value 0-255
 	Blue     uint8         // Blue value 0-255
+	Brightness	uint8
 	LED      uint8         // which LED to address (0=all, 1=1st LED, 2=2nd LED)
 	FadeTime time.Duration // Fadetime to state
 	Duration time.Duration // Duration of state after FadeTime
@@ -128,9 +129,19 @@ func (self *Device) WritePattern(pat *Pattern, pos int) error {
 		return err
 	}
 
+	red := pat.Red
+	green := pat.Green
+	blue := pat.Blue
+
+	if pat.Brightness != 0 {
+		red = uint8((int(red)*int(pat.Brightness)) >> 8)
+		green = uint8((int(green)*int(pat.Brightness)) >> 8)
+		blue = uint8((int(blue)*int(pat.Brightness)) >> 8)
+	}
+
 	dms := int(pat.FadeTime/(10*time.Millisecond));
 	cmd := []byte{ BLINK1_REPORT_ID, 'P',
-		pat.Red, pat.Green, pat.Blue,
+		red, green, blue,
 		byte(dms>>8), byte(dms % 0xff), byte(pos&0xff)};
 	return self.Device.Blink1Write(cmd)
 }
@@ -152,8 +163,19 @@ func (self *Device) Play(play, startpos, endpos, count uint8) error {
 
 func (self *Device) FadeToRGB(pat *Pattern) error {
 	dms := int(pat.FadeTime/(10*time.Millisecond));
+
+	red := pat.Red
+	green := pat.Green
+	blue := pat.Blue
+
+	if pat.Brightness != 0 {
+		red = uint8((int(red)*int(pat.Brightness)) >> 8)
+		green = uint8((int(green)*int(pat.Brightness)) >> 8)
+		blue = uint8((int(blue)*int(pat.Brightness)) >> 8)
+	}
+
 	cmd := []byte{
-		BLINK1_REPORT_ID, 'c', byte(pat.Red), byte(pat.Green), byte(pat.Blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
+		BLINK1_REPORT_ID, 'c', byte(red), byte(green), byte(blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
 	}
 	err := self.Device.Blink1Write(cmd)
 	return err
@@ -161,8 +183,19 @@ func (self *Device) FadeToRGB(pat *Pattern) error {
 
 func (self *Device) SetRGB(pat *Pattern) error {
 	dms := int(pat.FadeTime/(10*time.Millisecond));
+
+	red := pat.Red
+	green := pat.Green
+	blue := pat.Blue
+
+	if pat.Brightness != 0 {
+		red = uint8((int(red)*int(pat.Brightness)) >> 8)
+		green = uint8((int(green)*int(pat.Brightness)) >> 8)
+		blue = uint8((int(blue)*int(pat.Brightness)) >> 8)
+	}
+
 	cmd := []byte{
-		BLINK1_REPORT_ID, 'n', byte(pat.Red), byte(pat.Green), byte(pat.Blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
+		BLINK1_REPORT_ID, 'n', byte(red), byte(green), byte(blue), byte(dms >> 8), byte(dms % 127), byte(pat.LED),
 	}
 	err := self.Device.Blink1Write(cmd)
 	return err
